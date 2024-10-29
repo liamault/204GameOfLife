@@ -19,6 +19,7 @@ class GameOfLife:
         #print top row border
         print("_"*(self.cols+2))
 
+        #add rows
         for row in self.grid:
             rowStr = "".join(['O' if cell else ' ' for cell in row])
             
@@ -32,7 +33,8 @@ class GameOfLife:
         print(f'STATUS: {self.status}')
 
     def countNeighbors(self, x, y):
-        # Count the alive neighbors of a cell at position (x, y)
+        
+        #count the alive neighbors of a cell at position (x, y)
         total = np.sum(self.grid[max(0, x-1):min(self.rows, x+2), max(0, y-1):min(self.cols, y+2)])
         return total - self.grid[x, y]
 
@@ -44,19 +46,22 @@ class GameOfLife:
             for j in range(self.cols):
                 aliveNeighbors = self.countNeighbors(i, j)
                 if self.grid[i, j] == 1:
-                    # underpop vs overpop
+                    #underpop vs overpop
                     if aliveNeighbors < 2 or aliveNeighbors > 3:
                         newGrid[i, j] = 0
                 else:
-                    # reproduction
+                    #reproduction
                     if aliveNeighbors == 3:
                         newGrid[i, j] = 1
         
+        #status logic
         if self.status == 'UNSTABLE':
             self.oldGrids.append(self.grid)
         
+        #update grid
         self.grid = newGrid
-
+        
+        #more status logic
         if self.status == 'UNSTABLE':
             gridIndex = -1
             for i in range(len(self.oldGrids)-1, -1, -1):
