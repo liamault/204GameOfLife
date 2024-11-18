@@ -1,6 +1,6 @@
 import random
 
-def generate_grid():
+def generate_starting_grid():
     # Create a flat list with 10 '1's (alive) and 54 '0's (dead)
     cells = [1] * 10 + [0] * 54
     
