@@ -11,13 +11,13 @@ E = Encoding()
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
-class BasicPropositions:
-
-    def __init__(self, data):
-        self.data = data
+class TileStatus(object):
+    def __init__(self, x_coor, y_coor):
+        self.x_coor = x_coor
+        self.y_coor = y_coor
 
     def _prop_name(self):
-        return f"A.{self.data}"
+        return f"({self.x_coor}, {self.y_coor})"
 
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
