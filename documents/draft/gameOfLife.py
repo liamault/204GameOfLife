@@ -8,8 +8,16 @@ class GameOfLife:
         self.cols = cols
         self.status = 'UNSTABLE'
         self.oldGrids = []
+        self.count = 1
         
         #initialize with random alive and dead
+        self.grid = np.zeros((rows, cols), dtype=int)
+
+        num_ones = 8
+        positions = np.random.choice(rows * cols, num_ones, replace=False)
+
+        np.put(self.grid, positions, 1)
+
         self.grid = np.random.randint(2, size=(rows, cols))
 
     def display(self):
@@ -31,6 +39,7 @@ class GameOfLife:
 
         #print status
         print(f'STATUS: {self.status}')
+        print(f'ITERATION: {self.count}')
 
     def countNeighbors(self, x, y):
         
@@ -63,6 +72,7 @@ class GameOfLife:
         
         #more status logic
         if self.status == 'UNSTABLE':
+            self.count += 1
             gridIndex = -1
             for i in range(len(self.oldGrids)-1, -1, -1):
                 if np.array_equal(self.oldGrids[i], self.grid):
@@ -84,5 +94,5 @@ class GameOfLife:
         
 
 #initialize
-game = GameOfLife(rows=20, cols=40)
+game = GameOfLife(rows=8, cols=8)
 game.run(delay=0.2)
