@@ -9,6 +9,28 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
+TILES = {};
+
+CORDINATES = [];
+GRID = {};
+
+def generate_locations(rows, cols):
+    global CORDINATES, GRID
+    assert rows < 9 # No more then 8 rows 
+    assert cols < 9 # No more then 8 columns 
+    
+    for row in range(1, rows + 1):
+        GRID[row] = {}
+        
+        for col in range(1, cols + 1):
+            CORDINATES.append(f'{row}{col}')
+            GRID[row][col].append(f'{row}{col}')
+            
+for tile in example1['tiles']:
+    x = tile[0]
+    y = tile[1]
+    TILES[f'{x},{y}'] = [tile]
+
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
