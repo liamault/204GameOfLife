@@ -11,11 +11,11 @@ E = Encoding()
 
 TILES = {};
 
-CORDINATES = [];
+COORDINATES = [];
 GRID = {};
 
 def generate_locations(rows, cols):
-    global CORDINATES, GRID
+    global COORDINATES, GRID
     assert rows < 9 # No more then 8 rows 
     assert cols < 9 # No more then 8 columns 
     
@@ -23,13 +23,15 @@ def generate_locations(rows, cols):
         GRID[row] = {}
         
         for col in range(1, cols + 1):
-            CORDINATES.append(f'{row}{col}')
+            COORDINATES.append(f'{row}{col}')
             GRID[row][col].append(f'{row}{col}')
             
 for tile in example1['tiles']:
     x = tile[0]
     y = tile[1]
     TILES[f'{x},{y}'] = [tile]
+
+
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
