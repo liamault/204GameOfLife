@@ -13,6 +13,31 @@ TILES = {};
 
 COORDINATES = [];
 GRID = {};
+NEIGHBOURS = {};
+
+# moving in the grid i.e. finding neighbors 
+move = {
+    "up": (-1, 0),
+    "down": (1, 0),
+    "left": (0, -1),
+    "right": (0, 1),
+    "across_right_up": (-1, 1),
+    "across_left_up": (-1, -1),
+    "across_right_down": (1, 1),
+    "across_left_down": (1, -1)
+}
+
+# getting neighbors for a cell
+def get_neighbors(row, col, grid):
+    global NEIGHBORS
+    for direction in move.values():
+        # neighbor coordinates
+        new_row, new_col = row + direction[0], col + direction[1]
+        
+        # check if  within bounds
+        if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
+            NEIGHBORS.append((new_row, new_col))
+    return NEIGHBORS
 
 def generate_locations(rows, cols):
     global COORDINATES, GRID
