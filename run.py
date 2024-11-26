@@ -77,7 +77,7 @@ class GridStatus(object):
         self.status = status
 
     def _prop_name(self):
-        return f"({self.x_coor}, {self.y_coor})"
+        return f"({self.status})"
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
