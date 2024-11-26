@@ -62,7 +62,6 @@ for tile in example1['tiles']:
 @proposition(E)
 class TileStatus(object):
     def __init__(self, x_coor, y_coor):
-        assert self in TILES
         assert x_coor in COORDINATES
         assert y_coor in COORDINATES
         self.x_coor = x_coor
