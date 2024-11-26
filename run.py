@@ -61,7 +61,7 @@ for tile in example1['tiles']:
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, x_coor, y_coor):
+    def __init__(self, x_coor, y_coor) -> None:
         assert x_coor in COORDINATES
         assert y_coor in COORDINATES
         self.x_coor = x_coor
@@ -72,11 +72,14 @@ class TileStatus(object):
 
 @proposition(E)
 class GridStatus(object):
-    def __init__(self, status):
-        self.status = status
+    def __init__(self, iteration, grid) -> None:
+        assert grid in
+        self.iteration = iteration
+        self.grid = grid
 
     def _prop_name(self):
-        return f"({self.status})"
+        return f"({self.iteration}: {self.grid})"
+
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
