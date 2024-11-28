@@ -44,7 +44,7 @@ def generate_locations(rows, cols):
     
     for i in range(0, rows - 1):
         for j in range(0, cols - 1):
-            COORDINATES.append(f'x:{i},y:{j}')
+            COORDINATES.append((i,j))
             
 for tile in example1['tiles']:
     x = tile[0]
@@ -56,9 +56,8 @@ for tile in example1['tiles']:
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, x_coor, y_coor) -> None:
-        assert x_coor in COORDINATES
-        assert y_coor in COORDINATES
+    def __init__(self, cords) -> None:
+        assert cords in COORDINATES
         self.x_coor = x_coor
         self.y_coor = y_coor
 
