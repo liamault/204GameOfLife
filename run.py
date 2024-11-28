@@ -9,10 +9,8 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
-TILES = {};
-
+INITIAL_TILES = {};
 COORDINATES = [];
-GRID = {};
 NEIGHBOURS = {};
 
 # moving in the grid i.e. finding neighbors 
@@ -44,17 +42,14 @@ def generate_locations(rows, cols):
     assert rows < 9 # No more then 8 rows 
     assert cols < 9 # No more then 8 columns 
     
-    for row in range(1, rows + 1):
-        GRID[row] = {}
-        
-        for col in range(1, cols + 1):
-            COORDINATES.append(f'{row}{col}')
-            GRID[row][col].append(f'{row}{col}')
+    for i in range(0, rows - 1):
+        for j in range(0, cols - 1):
+            COORDINATES.append(f'x:{i},y:{j}')
             
 for tile in example1['tiles']:
     x = tile[0]
     y = tile[1]
-    TILES[f'{x},{y}'] = [tile]
+    INITIAL_TILES[f'{x},{y}'] = [tile]
 
 
 
@@ -79,6 +74,28 @@ class GridStatus(object):
 
     def _prop_name(self):
         return f"({self.iteration}: {self.grid})"
+
+@proposition(E)
+class Stability(object):
+    def __init__(self, grid1, grid2) -> None:
+        assert grid1 in
+        assert grid2 in
+        self.grid1 = grid1
+        self.grid2 = grid2
+
+    def _prop_name(self):
+        return f"({self.grid1} = {self.grid2})"
+
+@proposition(E)
+class Repeating(object):
+    def __init__(self, i, j) -> None:
+        assert grid[i] in 
+        assert grid[j] in
+        self.i = grid[i]
+        self.j = grid[j]
+
+    def _prop_name(self):
+        return f"({self.i} = {self.i})"
 
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
