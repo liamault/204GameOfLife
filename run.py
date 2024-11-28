@@ -9,15 +9,76 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
+TILES = {};
+
+COORDINATES = [];
+GRID = {};
+NEIGHBOURS = {};
+
+# moving in the grid i.e. finding neighbors 
+move = {
+    "up": (-1, 0),
+    "down": (1, 0),
+    "left": (0, -1),
+    "right": (0, 1),
+    "across_right_up": (-1, 1),
+    "across_left_up": (-1, -1),
+    "across_right_down": (1, 1),
+    "across_left_down": (1, -1)
+}
+
+# getting neighbors for a cell
+def get_neighbors(row, col, grid):
+    global NEIGHBORS
+    for direction in move.values():
+        # neighbor coordinates
+        new_row, new_col = row + direction[0], col + direction[1]
+        
+        # check if  within bounds
+        if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
+            NEIGHBORS.append((new_row, new_col))
+    return NEIGHBORS
+
+def generate_locations(rows, cols):
+    global COORDINATES, GRID
+    assert rows < 9 # No more then 8 rows 
+    assert cols < 9 # No more then 8 columns 
+    
+    for row in range(1, rows + 1):
+        GRID[row] = {}
+        
+        for col in range(1, cols + 1):
+            COORDINATES.append(f'{row}{col}')
+            GRID[row][col].append(f'{row}{col}')
+            
+for tile in example1['tiles']:
+    x = tile[0]
+    y = tile[1]
+    TILES[f'{x},{y}'] = [tile]
+
+
+
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
-class BasicPropositions:
-
-    def __init__(self, data):
-        self.data = data
+class TileStatus(object):
+    def __init__(self, x_coor, y_coor) -> None:
+        assert x_coor in COORDINATES
+        assert y_coor in COORDINATES
+        self.x_coor = x_coor
+        self.y_coor = y_coor
 
     def _prop_name(self):
-        return f"A.{self.data}"
+        return f"({self.x_coor}, {self.y_coor})"
+
+@proposition(E)
+class GridStatus(object):
+    def __init__(self, iteration, grid) -> None:
+        assert grid in
+        self.iteration = iteration
+        self.grid = grid
+
+    def _prop_name(self):
+        return f"({self.iteration}: {self.grid})"
 
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
