@@ -9,8 +9,8 @@ config.sat_backend = "kissat"
 # Encoding that will store all of your constraints
 E = Encoding()
 
-INITIAL_TILES = {};
-COORDINATES = [];
+INITIAL_TILES = [];
+GRID = [];
 NEIGHBOURS = {};
 
 # moving in the grid i.e. finding neighbors 
@@ -38,31 +38,30 @@ def get_neighbors(row, col, grid):
     return NEIGHBORS
 
 def generate_locations(rows, cols):
-    global COORDINATES, GRID
+    global GRID, INITIAL_TILES
     assert rows < 9 # No more then 8 rows 
     assert cols < 9 # No more then 8 columns 
     
     for i in range(0, rows - 1):
         for j in range(0, cols - 1):
-            COORDINATES.append((i,j))
+            GRID.append((i,j))
             
-for tile in example1['tiles']:
-    x = tile[0]
-    y = tile[1]
-    INITIAL_TILES[f'{x},{y}'] = [tile]
+    for tile in example1['tiles']:
+        INITIAL_TILES.append(tile)
 
 
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, cords) -> None:
+    def __init__(self, cords, state) -> None:
         assert cords in COORDINATES
         self.x_coor = x_coor
         self.y_coor = y_coor
+        self.state = state
 
     def _prop_name(self):
-        return f"({self.x_coor}, {self.y_coor})"
+        return f"({self.x_coor}, {self.y_coor}: {self.state})"
 
 @proposition(E)
 class GridStatus(object):
@@ -130,6 +129,19 @@ z = FancyPropositions("z")
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
 def example_theory():
+
+    for tile in GRID:
+        x_coor = tile[0]
+        y_coor = tile[1]
+        
+        if tile in INITIAL_TILES:
+            tile_propositions = TileStatus(x_coor, y_coor, 1)
+        else:
+            tile_propositions = TileStatus(x_coor, y_coor, 0)
+
+        constraint.add_exactly_one(E, location_propositions)
+        
+
     # Add custom constraints by creating formulas with the variables you created. 
     E.add_constraint((a | b) & ~x)
     # Implication
