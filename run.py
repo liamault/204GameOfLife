@@ -130,6 +130,7 @@ z = FancyPropositions("z")
 #  what the expectations are.
 def example_theory():
 
+    # A tile is placed for every space on the grid either alive or dead
     for tile in GRID:
         x_coor = tile[0]
         y_coor = tile[1]
@@ -139,7 +140,7 @@ def example_theory():
         else:
             tile_propositions = TileStatus(x_coor, y_coor, 0)
 
-        constraint.add_exactly_one(E, location_propositions)
+        constraint.add_exactly_one(E, tile_propositions)
         
 
     # Add custom constraints by creating formulas with the variables you created. 
