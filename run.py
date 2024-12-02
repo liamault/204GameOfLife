@@ -153,8 +153,14 @@ def add_stable_constraints():
         )
 
 def add_repitition_constraints():
-    for i in range(MAX_ITERATIONS):
-
+    for i in range(MAX_ITERATIONS - 1):
+        
+        #add constraints for repetitions
+        E.add_constraint(
+            Or(*[
+                And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(i+1, MAX_ITERATIONS)
+            ]) >> Repeating(i)
+        )
 
         
 
