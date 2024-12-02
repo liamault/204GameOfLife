@@ -240,7 +240,28 @@ def add_glider_constraints():
                     TileStatus(x - 1, y - 1, i) == TileStatus(x, y, i - 4) for x in range(1, GRID_SIZE) for y in range(1, GRID_SIZE)
                 ]) >> Glider(i)
             )
+
+#S → R and ¬(R → S)
+def add_repeating_stability_relationship_constraints():
+    for i in range(MAX_ITERATIONS):
         
+        #S → R
+        E.add_constraint(
+            Stability(i) >> Repeating(i)
+        )
+        
+        #¬(R → S)
+        E.add_constraint(
+            ~(Repeating(i) >> Stability(i))
+        )
+
+#¬C → (S ∧ R)
+def add_dead_grid_stable_and_repeats_constraint():
+    for i in range(MAX_ITERATIONS):
+        E.add_constraint(
+            ~GridStatus(i) >> (Stability(i) & Repeating(i))
+        )
+
 
 
 def example_theory():
