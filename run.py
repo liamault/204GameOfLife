@@ -54,14 +54,15 @@ def generate_locations(rows, cols):
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, cords, state) -> None:
+    def __init__(self, cords, state, iteration) -> None:
         assert cords in COORDINATES
         self.x_coor = x_coor
         self.y_coor = y_coor
         self.state = state
+        self.iteration = iteration
 
     def _prop_name(self):
-        return f"({self.x_coor}, {self.y_coor}: {self.state})"
+        return f"({self.x_coor}, {self.y_coor}, {self.iteration}: {self.state})"
 
 @proposition(E)
 class GridStatus(object):
