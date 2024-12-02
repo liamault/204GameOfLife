@@ -67,11 +67,10 @@ class TileStatus(object):
         assert cords in COORDINATES
         self.x_coor = x_coor
         self.y_coor = y_coor
-        self.state = state
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"({self.x_coor}, {self.y_coor}, {self.iteration}: {self.state})"
+        return f"(At iteration {self.iteration}, tile {self.x_coor}, {self.y_coor} is alive)"
 
 @proposition(E)
 class GridStatus(object):
