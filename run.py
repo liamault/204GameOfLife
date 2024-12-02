@@ -74,13 +74,11 @@ class TileStatus(object):
 
 @proposition(E)
 class GridStatus(object):
-    def __init__(self, iteration, grid) -> None:
-        assert grid in
+    def __init__(self, iteration) -> None:
         self.iteration = iteration
-        self.grid = grid
 
     def _prop_name(self):
-        return f"({self.iteration}: {self.grid})"
+        return f"(The grid is alive at iteration {self.iteration})"
 
 @proposition(E)
 class Stability(object):
