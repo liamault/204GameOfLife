@@ -70,7 +70,7 @@ class TileStatus(object):
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"(At iteration {self.iteration}, tile {self.x_coor}, {self.y_coor} is alive)"
+        return f"(At iteration {self.iteration}, the tile at {self.x_coor}, {self.y_coor} is alive)"
 
 @proposition(E)
 class GridStatus(object):
@@ -82,32 +82,26 @@ class GridStatus(object):
 
 @proposition(E)
 class Stability(object):
-    def __init__(self, grid1, grid2) -> None:
-        assert grid1 in
-        assert grid2 in
-        self.grid1 = grid1
-        self.grid2 = grid2
+    def __init__(self, iteration1, iteration2) -> None:
+        self.iteration = iteration
 
     def _prop_name(self):
-        return f"({self.grid1} = {self.grid2})"
+        return f"(Itertation {iteration} is the same as the previous iteration (Stable))"
 
 @proposition(E)
 class Repeating(object):
-    def __init__(self, i, j) -> None:
-        assert grid[i] in 
-        assert grid[j] in
-        self.i = grid[i]
-        self.j = grid[j]
+    def __init__(self, i) -> None:
+        self.iteration
 
     def _prop_name(self):
-        return f"({self.i} = {self.j})"
+        return f"(Iteration {iteration} is the same as one of the previous iterations (Repeating))"
 
 #create initial grid, and add Tile Status constraint to each tile
 def initialize_grid(rows=8, cols=8, initialAlive=[]):
     for x in range(rows):
         for y in range(cols):
             state = 1 if (x, y) in initialAlive else 0
-            E.add_constraint(TileStatus(x, y, state, 0))
+            E.add_constraint(TileStatus(x, y, 0))
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
