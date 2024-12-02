@@ -96,6 +96,12 @@ class Repeating(object):
     def _prop_name(self):
         return f"({self.i} = {self.i})"
 
+#create initial grid, and add Tile Status constraint to each tile
+def initialize_grid(rows=8, cols=8, initialAlive=[]):
+    for x in range(rows):
+        for y in range(cols):
+            state = 1 if (x, y) in initialAlive else 0
+            E.add_constraint(TileStatus(x, y, state, 0))
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
