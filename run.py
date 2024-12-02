@@ -12,23 +12,10 @@ import numpy as np
 # Encoding that will store all of your constraints
 E = Encoding()
 
-INITIAL_TILES = [];
+#blinker setup
+INITIAL_TILES = [(3,3),(3,4),(3,5)];
 GRIDS = [];
 NEIGHBOURS = {};
-
-#blinker setup
-blinker = np.array([
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 1, 1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
-])
-
-
 
 # moving in the grid i.e. finding neighbors 
 move = {
@@ -96,12 +83,22 @@ class Repeating(object):
     def _prop_name(self):
         return f"(Iteration {iteration} is the same as one of the previous iterations (Repeating))"
 
+@proposition(E)
+class Glider(object):
+    def __init__(self, i) -> None:
+        self.iteration
+
+    def _prop_name(self):
+        return f"(Iteration {iteration} is a glider)"
+
 #create initial grid, and add Tile Status constraint to each tile
 def initialize_grid(rows=8, cols=8, initialAlive=[]):
     for x in range(rows):
         for y in range(cols):
-            state = 1 if (x, y) in initialAlive else 0
-            E.add_constraint(TileStatus(x, y, 0))
+            if (x, y) in initialAlive
+                E.add_constraint(TileStatus(x, y, 0))
+            else:
+                E.add_constraint(~TileStatus(x, y, 0))
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
