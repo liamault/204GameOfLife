@@ -145,7 +145,7 @@ def add_grid_status_constraints():
         E.add_constraint(And(*[~TileStatus(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> ~GridStatus(i))
 
 def add_stable_constraints():
-    for i in range(MAX_ITERATIONS - 1):
+    for i in range(MAX_ITERATIONS):
         
         #if all the values of the current iteration match the next iteration, it is stable
         if i != (MAX_ITERATIONS-1):
@@ -178,7 +178,68 @@ def add_repitition_constraints():
                 ]) >> Repeating(i)
             )
 
+def add_glider_constraints():
+    for i in range(MAX_ITERATIONS):
+        
+        #add constraints for glider (forward)
+        if i <= MAX_ITERATIONS - 5:
+            #down right
+            E.add_constraint(
+                And(*[
+                    TileStatus(x, y, i) == TileStatus(x + 1, y + 1, i + 4) for x in range(GRID_SIZE - 1) for y in range(GRID_SIZE - 1)
+                ]) >> Glider(i)
+            )
 
+            #down left
+            E.add_constraint(
+                And(*[
+                    TileStatus(x, y, i) == TileStatus(x + 1, y - 1, i + 4) for x in range(GRID_SIZE - 1) for y in range(1, GRID_SIZE)
+                ]) >> Glider(i)
+            )
+
+            #up right
+            E.add_constraint(
+                And(*[
+                    TileStatus(x, y, i) == TileStatus(x - 1, y + 1, i + 4) for x in range(1, GRID_SIZE) for y in range(GRID_SIZE - 1)
+                ]) >> Glider(i)
+            )
+
+            #up left
+            E.add_constraint(
+                And(*[
+                    TileStatus(x, y, i) == TileStatus(x - 1, y - 1, i + 4) for x in range(1, GRID_SIZE) for y in range(1, GRID_SIZE)
+                ]) >> Glider(i)
+            )
+
+        #backwards constraints
+        if i >= 4:
+            #down right
+            E.add_constraint(
+                And(*[
+                    TileStatus(x + 1, y + 1, i) == TileStatus(x, y, i - 4) for x in range(GRID_SIZE - 1) for y in range(GRID_SIZE - 1)
+                ]) >> Glider(i)
+            )
+
+            #down left
+            E.add_constraint(
+                And(*[
+                    TileStatus(x + 1, y - 1, i) == TileStatus(x, y, i - 4) for x in range(GRID_SIZE - 1) for y in range(1, GRID_SIZE)
+                ]) >> Glider(i)
+            )
+
+            #up right
+            E.add_constraint(
+                And(*[
+                    TileStatus(x - 1, y + 1, i) == TileStatus(x, y, i - 4) for x in range(1, GRID_SIZE) for y in range(GRID_SIZE - 1)
+                ]) >> Glider(i)
+            )
+
+            #up left
+            E.add_constraint(
+                And(*[
+                    TileStatus(x - 1, y - 1, i) == TileStatus(x, y, i - 4) for x in range(1, GRID_SIZE) for y in range(1, GRID_SIZE)
+                ]) >> Glider(i)
+            )
         
 
 
