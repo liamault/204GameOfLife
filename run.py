@@ -18,7 +18,7 @@ GRID_SIZE = 8
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, x, y, state, iteration) -> None:
+    def __init__(self, x, y, iteration) -> None:
         self.x = x
         self.y = y
         self.iteration = iteration
@@ -36,27 +36,27 @@ class GridStatus(object):
 
 @proposition(E)
 class Stability(object):
-    def __init__(self, iteration1, iteration2) -> None:
+    def __init__(self, iteration) -> None:
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"(Itertation {iteration} is the same as the previous iteration (Stable))"
+        return f"(Itertation {self.iteration} is the same as the previous iteration (Stable))"
 
 @proposition(E)
 class Repeating(object):
-    def __init__(self, i) -> None:
-        self.iteration
+    def __init__(self, iteration) -> None:
+        self.iteration = iteration
 
     def _prop_name(self):
-        return f"(Iteration {iteration} is the same as one of the previous iterations (Repeating))"
+        return f"(Iteration {self.iteration} is the same as one of the previous iterations (Repeating))"
 
 @proposition(E)
 class Glider(object):
-    def __init__(self, i) -> None:
-        self.iteration
+    def __init__(self, iteration) -> None:
+        self.iteration = iteration
 
     def _prop_name(self):
-        return f"(Iteration {iteration} is a glider)"
+        return f"(Iteration {self.iteration} is a glider)"
 
 #TESTS ARE GONNA GO HERE
 #this is where initial tile states will be made
