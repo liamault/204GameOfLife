@@ -141,7 +141,18 @@ def example_theory():
             tile_propositions = TileStatus(x_coor, y_coor, 0)
 
         constraint.add_exactly_one(E, tile_propositions)
-        
+
+    # Alive tile remains alive with 2 or 3 neighbors
+    for tile in GRID:
+            E.add_constraint((tile.state.implies((get_alive_neighbors(tile) == 2) | (get_alive_neighbors(tile) == 3))))
+    
+    # Alive tile dies otherwise
+    for tile in GRID:
+            E.add_constraint((tile.state.implies(~((get_alive_neighbors(tile) < 2) | (get_alive_neighbors(tile) > 3)))))
+    
+    # Dead tile becomes alive with exactly 3 neighbors
+    for tile in GRID:
+            E.add_constraint((~tile.state).implies(get_alive_neighbors(tile) == 3))
 
     # Add custom constraints by creating formulas with the variables you created. 
     E.add_constraint((a | b) & ~x)
