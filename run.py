@@ -107,6 +107,33 @@ def add_tile_constraints():
     for i in range(MAX_ITERATIONS):
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
+                
+                #this gets neighbors
+                neighbors = [
+                    TileState(nx, ny, i)
+                    for nx in range(x-1, x+2)
+                    for ny in range(y-1, y+2)
+                    if (nx, ny) != (x, y) and 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE
+                ]
+
+                #this should work i think? If Tile State is a boolean which I think it is
+                aliveNeighbors = sum(neighbors)
+
+                #if dead and three alive neighbors, become alive
+                E.add_constraint(
+                    (~TileState(x, y, i) & (aliveNeighbors == 3)) >> TileState(x, y, i+1)
+                )
+
+                #if alive with less than 2 or more than 3 alive neighbors, die
+                E.add_constraint(
+                    (TileState(x, y, i) & ((aliveNeighbors < 2) | (aliveNeighbors > 3))) >> ~TileState(x, y, i+1)
+                )
+
+                #if alive with with 2 or 3 neighbors, stay alive
+                E.add_constraint(
+                    (TileState(x, y, i) & ((alive_neighbors == 2) | (alive_neighbors == 3))) >> TileState(x, y, t+i)
+                )
+
 
 
 
