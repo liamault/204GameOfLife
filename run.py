@@ -6,46 +6,14 @@ from bauhaus.utils import count_solutions, likelihood
 from nnf import config
 config.sat_backend = "kissat"
 
-#used for simplicity
-import numpy as np
-
 # Encoding that will store all of your constraints
 E = Encoding()
 
-#blinker setup
-INITIAL_TILES = [(3,3),(3,4),(3,5)];
-GRIDS = [];
-NEIGHBOURS = {};
+#number of iterations
+MAX_ITERATIONS = 10
 
-# moving in the grid i.e. finding neighbors 
-move = {
-    "up": (-1, 0),
-    "down": (1, 0),
-    "left": (0, -1),
-    "right": (0, 1),
-    "across_right_up": (-1, 1),
-    "across_left_up": (-1, -1),
-    "across_right_down": (1, 1),
-    "across_left_down": (1, -1)
-}
-
-# getting neighbors for a cell
-def get_neighbors(row, col, grid):
-    global NEIGHBORS
-    for direction in move.values():
-        # neighbor coordinates
-        new_row, new_col = row + direction[0], col + direction[1]
-        
-        # check if  within bounds
-        if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
-            NEIGHBORS.append((new_row, new_col))
-    return NEIGHBORS
-
-def initialize_neighbors(grid):
-    #loop through both and x and y
-    for row in range(len(grid)):
-        for col in range(len(grid[0])):
-            NEIGHBORS[(row, col)] = get_neighbors(row, col, grid)
+#size of grid
+GRID_SIZE = 8
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
@@ -91,14 +59,13 @@ class Glider(object):
     def _prop_name(self):
         return f"(Iteration {iteration} is a glider)"
 
-#create initial grid, and add Tile Status constraint to each tile
-def initialize_grid(rows=8, cols=8, initialAlive=[]):
-    for x in range(rows):
-        for y in range(cols):
-            if (x, y) in initialAlive
-                E.add_constraint(TileStatus(x, y, 0))
-            else:
-                E.add_constraint(~TileStatus(x, y, 0))
+#TESTS ARE GONNA GO HERE
+
+#blinker test
+
+
+
+# IGNORE THIS JUNK ---------------------------------------------------------------------------------------------------------------------
 
 # Different classes for propositions are useful because this allows for more dynamic constraint creation
 # for propositions within that class. For example, you can enforce that "at least one" of the propositions
@@ -126,6 +93,7 @@ x = FancyPropositions("x")
 y = FancyPropositions("y")
 z = FancyPropositions("z")
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # Build an example full theory for your setting and return it.
 #
