@@ -145,22 +145,39 @@ def add_grid_status_constraints():
         E.add_constraint(And(*[~TileStatus(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> ~GridStatus(i))
 
 def add_stable_constraints():
-    for i in range(MAX_ITERATIONS):
-        
-        #if all the values of the current iteration match the next iteration, it is stable
-        E.add_constraint(
-            And(*[TileStatus(x, y, i) == TileStatus(x, y, i+1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
-        )
-
-def add_repitition_constraints():
     for i in range(MAX_ITERATIONS - 1):
         
+        #if all the values of the current iteration match the next iteration, it is stable
+        if i != (MAX_ITERATIONS-1):
+            E.add_constraint(
+                And(*[TileStatus(x, y, i) == TileStatus(x, y, i+1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
+            )
+
+        #backwards constraints
+        if i != 0:
+            E.add_constraint(
+                And(*[TileStatus(x, y, i) == TileStatus(x, y, i-1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
+            )
+
+def add_repitition_constraints():
+    for i in range(MAX_ITERATIONS):
+        
         #add constraints for repetitions
-        E.add_constraint(
-            Or(*[
-                And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(i+1, MAX_ITERATIONS)
-            ]) >> Repeating(i)
-        )
+        if i != (MAX_ITERATIONS-1):
+            E.add_constraint(
+                Or(*[
+                    And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(i+1, MAX_ITERATIONS)
+                ]) >> Repeating(i)
+            )
+        
+        #backwards constraints
+        if i != 0:
+            E.add_constraint(
+                Or(*[
+                    And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(0, i)
+                ]) >> Repeating(i)
+            )
+
 
         
 
