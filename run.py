@@ -40,7 +40,7 @@ class Stability(object):
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"(Itertation {self.iteration} is the same as the previous iteration (Stable))"
+        return f"(Itertation {self.iteration} will not change next iteration (Stable))"
 
 @proposition(E)
 class Repeating(object):
@@ -137,11 +137,25 @@ def add_tile_constraints():
 
 def add_grid_status_constraints():
     for i in range(MAX_ITERATIONS):
+        
         #if any tiles are alive, grid is alive
         E.add_constraint(Or(*[TileStatus(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> GridStatus(i))
 
         #if all tiles are dead, grid is dead
         E.add_constraint(And(*[~TileStatus(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> ~GridStatus(i))
+
+def add_stable_constraints():
+    for i in range(MAX_ITERATIONS):
+        
+        #if all the values of the current iteration match the next iteration, it is stable
+        E.add_constraint(
+            And(*[TileStatus(x, y, i) == TileStatus(x, y, i+1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
+        )
+
+def add_repitition_constraints():
+    for i in range(MAX_ITERATIONS):
+
+
         
 
 
