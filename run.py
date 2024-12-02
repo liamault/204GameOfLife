@@ -110,7 +110,7 @@ def add_tile_constraints():
                 
                 #this gets neighbors
                 neighbors = [
-                    TileState(nx, ny, i)
+                    TileStatus(nx, ny, i)
                     for nx in range(x-1, x+2)
                     for ny in range(y-1, y+2)
                     if (nx, ny) != (x, y) and 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE
@@ -121,22 +121,27 @@ def add_tile_constraints():
 
                 #if dead and three alive neighbors, become alive
                 E.add_constraint(
-                    (~TileState(x, y, i) & (aliveNeighbors == 3)) >> TileState(x, y, i+1)
+                    (~TileStatus(x, y, i) & (aliveNeighbors == 3)) >> TileStatus(x, y, i+1)
                 )
 
                 #if alive with less than 2 or more than 3 alive neighbors, die
                 E.add_constraint(
-                    (TileState(x, y, i) & ((aliveNeighbors < 2) | (aliveNeighbors > 3))) >> ~TileState(x, y, i+1)
+                    (TileStatus(x, y, i) & ((aliveNeighbors < 2) | (aliveNeighbors > 3))) >> ~TileStatus(x, y, i+1)
                 )
 
                 #if alive with with 2 or 3 neighbors, stay alive
                 E.add_constraint(
-                    (TileState(x, y, i) & ((alive_neighbors == 2) | (alive_neighbors == 3))) >> TileState(x, y, t+i)
+                    (TileStatus(x, y, i) & ((aliveNeighbor == 2) | (aliveNeighbor == 3))) >> TileStatus(x, y, t+i)
                 )
 
 
-def add_grid_status_constraints:
+def add_grid_status_constraints():
     for i in range(MAX_ITERATIONS):
+        #if any tiles are alive, grid is alive
+        E.add_constraint(Or(*[TileState(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> GridStatus(i))
+
+        #if all tiles are dead, grid is dead
+        E.add_constraint(And(*[~TileState(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> ~GridStatus(i))
         
 
 
