@@ -6,12 +6,29 @@ from bauhaus.utils import count_solutions, likelihood
 from nnf import config
 config.sat_backend = "kissat"
 
+#used for simplicity
+import numpy as np
+
 # Encoding that will store all of your constraints
 E = Encoding()
 
 INITIAL_TILES = [];
-GRID = [];
+GRIDS = [];
 NEIGHBOURS = {};
+
+#blinker setup
+blinker = np.array([
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
+])
+
+
 
 # moving in the grid i.e. finding neighbors 
 move = {
@@ -37,19 +54,11 @@ def get_neighbors(row, col, grid):
             NEIGHBORS.append((new_row, new_col))
     return NEIGHBORS
 
-def generate_locations(rows, cols):
-    global GRID, INITIAL_TILES
-    assert rows < 9 # No more then 8 rows 
-    assert cols < 9 # No more then 8 columns 
-    
-    for i in range(0, rows - 1):
-        for j in range(0, cols - 1):
-            GRID.append((i,j))
-            
-    for tile in example1['tiles']:
-        INITIAL_TILES.append(tile)
-
-
+def initialize_neighbors(grid):
+    #loop through both and x and y
+    for row in range(len(grid)):
+        for col in range(len(grid[0])):
+            NEIGHBORS[(row, col)] = get_neighbors(row, col, grid)
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
@@ -94,7 +103,7 @@ class Repeating(object):
         self.j = grid[j]
 
     def _prop_name(self):
-        return f"({self.i} = {self.i})"
+        return f"({self.i} = {self.j})"
 
 #create initial grid, and add Tile Status constraint to each tile
 def initialize_grid(rows=8, cols=8, initialAlive=[]):
