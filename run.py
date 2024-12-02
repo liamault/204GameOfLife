@@ -18,10 +18,9 @@ GRID_SIZE = 8
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
 class TileStatus(object):
-    def __init__(self, cords, state, iteration) -> None:
-        assert cords in COORDINATES
-        self.x_coor = x_coor
-        self.y_coor = y_coor
+    def __init__(self, x, y, state, iteration) -> None:
+        self.x = x
+        self.y = y
         self.iteration = iteration
 
     def _prop_name(self):
@@ -60,8 +59,10 @@ class Glider(object):
         return f"(Iteration {iteration} is a glider)"
 
 #TESTS ARE GONNA GO HERE
+#this is where initial tile states will be made
 
 #blinker test
+#
 
 
 
@@ -100,6 +101,16 @@ z = FancyPropositions("z")
 #  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
+
+#create tile constraints
+def add_tile_constraints():
+    for i in range(MAX_ITERATIONS):
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+
+
+
+
 def example_theory():
 
     # A tile is placed for every space on the grid either alive or dead
