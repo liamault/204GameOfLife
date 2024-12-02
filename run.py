@@ -142,6 +142,7 @@ def example_theory():
 
         constraint.add_exactly_one(E, tile_propositions)
 
+    # TODO: need to create function get_alive_neighbours which returns the number of neighbours of a given tile
     # Alive tile remains alive with 2 or 3 neighbors
     for tile in GRID:
             E.add_constraint((tile.state.implies((get_alive_neighbors(tile) == 2) | (get_alive_neighbors(tile) == 3))))
