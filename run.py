@@ -135,7 +135,9 @@ def add_tile_constraints():
                 )
 
 
-
+def add_grid_status_constraints:
+    for i in range(MAX_ITERATIONS):
+        
 
 
 def example_theory():
