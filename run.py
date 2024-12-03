@@ -62,7 +62,66 @@ class Glider(object):
 #this is where initial tile states will be made
 
 #blinker test
-#
+def blinkerTest():
+    blinker = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]
+
+    for x in range(GRID_SIZE):
+        for y in range(GRID_SIZE):
+            if blinker[x][y] == 1:
+                E.add_constraint(TileStatus(x,y,0))
+            else:
+                E.add_constraint(~TileStatus(x,y,0))
+
+#glider test
+def gliderTest():
+    glider = [
+        [0, 1, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]
+
+    for x in range(GRID_SIZE):
+        for y in range(GRID_SIZE):
+            if glider[x][y] == 1:
+                E.add_constraint(TileStatus(x,y,0))
+            else:
+                E.add_constraint(~TileStatus(x,y,0))
+
+#box test
+def boxTest():
+    box = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 0, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]
+
+    for x in range(GRID_SIZE):
+        for y in range(GRID_SIZE):
+            if box[x][y] == 1:
+                E.add_constraint(TileStatus(x,y,0))
+            else:
+                E.add_constraint(~TileStatus(x,y,0))
+
+            
 
 
 
@@ -84,7 +143,8 @@ class FancyPropositions:
         return f"A.{self.data}"
 
 # Call your variables whatever you want
-a = BasicPropositions("a")
+a = BasicProposi
+tions("a")
 b = BasicPropositions("b")   
 c = BasicPropositions("c")
 d = BasicPropositions("d")
