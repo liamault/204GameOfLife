@@ -132,27 +132,27 @@ def boxTest():
 # that are instances of this class must be true by using a @constraint decorator.
 # other options include: at most one, exactly one, at most k, and implies all.
 # For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
-@constraint.at_least_one(E)
-@proposition(E)
-class FancyPropositions:
+# @constraint.at_least_one(E)
+# @proposition(E)
+# class FancyPropositions:
 
-    def __init__(self, data):
-        self.data = data
+#     def __init__(self, data):
+#         self.data = data
 
-    def _prop_name(self):
-        return f"A.{self.data}"
+#     def _prop_name(self):
+#         return f"A.{self.data}"
 
-# Call your variables whatever you want
-a = BasicProposi
-tions("a")
-b = BasicPropositions("b")   
-c = BasicPropositions("c")
-d = BasicPropositions("d")
-e = BasicPropositions("e")
-# At least one of these will be true
-x = FancyPropositions("x")
-y = FancyPropositions("y")
-z = FancyPropositions("z")
+# # Call your variables whatever you want
+# a = BasicProposi
+# tions("a")
+# b = BasicPropositions("b")   
+# c = BasicPropositions("c")
+# d = BasicPropositions("d")
+# e = BasicPropositions("e")
+# # At least one of these will be true
+# x = FancyPropositions("x")
+# y = FancyPropositions("y")
+# z = FancyPropositions("z")
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -326,40 +326,8 @@ def add_dead_grid_stable_and_repeats_constraint():
 
 def example_theory():
 
-    # A tile is placed for every space on the grid either alive or dead
-    for tile in GRID:
-        x_coor = tile[0]
-        y_coor = tile[1]
-        
-        if tile in INITIAL_TILES:
-            tile_propositions = TileStatus(x_coor, y_coor, 1)
-        else:
-            tile_propositions = TileStatus(x_coor, y_coor, 0)
-
-        constraint.add_exactly_one(E, tile_propositions)
-
-    # TODO: need to create function get_alive_neighbours which returns the number of neighbours of a given tile
-    # Alive tile remains alive with 2 or 3 neighbors
-    for tile in GRID:
-            E.add_constraint((tile.state.implies((get_alive_neighbors(tile) == 2) | (get_alive_neighbors(tile) == 3))))
-    
-    # Alive tile dies otherwise
-    for tile in GRID:
-            E.add_constraint((tile.state.implies(~((get_alive_neighbors(tile) < 2) | (get_alive_neighbors(tile) > 3)))))
-    
-    # Dead tile becomes alive with exactly 3 neighbors
-    for tile in GRID:
-            E.add_constraint((~tile.state).implies(get_alive_neighbors(tile) == 3))
-
-    # Add custom constraints by creating formulas with the variables you created. 
-    E.add_constraint((a | b) & ~x)
-    # Implication
-    E.add_constraint(y >> z)
-    # Negate a formula
-    E.add_constraint(~(x & y))
-    # You can also add more customized "fancy" constraints. Use case: you don't want to enforce "exactly one"
-    # for every instance of BasicPropositions, but you want to enforce it for a, b, and c.:
-    constraint.add_exactly_one(E, a, b, c)
+    add_tile_constraints()
+    add_grid_status_constraints
 
     return E
 
@@ -375,9 +343,9 @@ if __name__ == "__main__":
     print("# Solutions: %d" % count_solutions(T))
     print("   Solution: %s" % T.solve())
 
-    print("\nVariable likelihoods:")
-    for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
-        # Ensure that you only send these functions NNF formulas
-        # Literals are compiled to NNF here
-        print(" %s: %.2f" % (vn, likelihood(T, v)))
-    print()
+    # print("\nVariable likelihoods:")
+    # for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
+    #     # Ensure that you only send these functions NNF formulas
+    #     # Literals are compiled to NNF here
+    #     print(" %s: %.2f" % (vn, likelihood(T, v)))
+    # print()
