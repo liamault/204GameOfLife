@@ -1,6 +1,7 @@
 
 from bauhaus import Encoding, proposition, constraint, And, Or
 from bauhaus.utils import count_solutions, likelihood
+from itertools import combinations
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -24,7 +25,7 @@ class TileStatus(object):
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"(At iteration {self.iteration}, the tile at {self.x_coor}, {self.y_coor} is alive)"
+        return f"(At iteration {self.iteration}, the tile at {self.x}, {self.y} is alive)"
 
 @proposition(E)
 class GridStatus(object):
@@ -162,9 +163,19 @@ def boxTest():
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
 
+#helper function for tile constrints
+def exactly_n_neighbors(neighbors, n):
+    return Or(
+        *[
+            And(*subset, *[~neighbor for neighbor in neighbors if neighbor not in subset])
+            for subset in combinations(neighbors, n)
+        ]
+    )
+
+
 #create tile constraints
 def add_tile_constraints():
-    for i in range(MAX_ITERATIONS):
+    for i in range(MAX_ITERATIONS - 1):
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
                 
@@ -176,22 +187,22 @@ def add_tile_constraints():
                     if (nx, ny) != (x, y) and 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE
                 ]
 
-                #this should work i think? If Tile State is a boolean which I think it is
-                aliveNeighbors = sum(neighbors)
+                exactly2neighbors = exactly_n_neighbors(neighbors, 2)
+                exactly3neighbors = exactly_n_neighbors(neighbors, 3)
 
                 #if dead and three alive neighbors, become alive
                 E.add_constraint(
-                    (~TileStatus(x, y, i) & (aliveNeighbors == 3)) >> TileStatus(x, y, i+1)
+                    (~TileStatus(x, y, i) & (exactly3neighbors)) >> TileStatus(x, y, i+1)
                 )
 
                 #if alive with less than 2 or more than 3 alive neighbors, die
                 E.add_constraint(
-                    (TileStatus(x, y, i) & ((aliveNeighbors < 2) | (aliveNeighbors > 3))) >> ~TileStatus(x, y, i+1)
+                    (TileStatus(x, y, i) & (~exactly2neighbors & ~exactly3neighbors)) >> ~TileStatus(x, y, i+1)
                 )
 
                 #if alive with with 2 or 3 neighbors, stay alive
                 E.add_constraint(
-                    (TileStatus(x, y, i) & ((aliveNeighbors == 2) | (aliveNeighbors == 3))) >> TileStatus(x, y, i+i)
+                    (TileStatus(x, y, i) & (exactly2neighbors | exactly3neighbors)) >> TileStatus(x, y, i+i)
                 )
 
 
