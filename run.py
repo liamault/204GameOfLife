@@ -348,10 +348,10 @@ if __name__ == "__main__":
     T = example_theory()
     # Don't compile until you're finished adding all your constraints!
     
+    print('TEST1')
     print('STARTED COMPILING ...')
     T = T.compile()
-    print('FINISHED COMPILING')
-    print('TEST1')
+    print('FINISHED COMPILING') 
 
     # After compilation (and only after), you can check some of the properties
     # of your model:
