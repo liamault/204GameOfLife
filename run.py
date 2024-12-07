@@ -5,7 +5,7 @@ from itertools import combinations
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
-config.sat_backend = "kissat"
+config.sat_backend = "auto"
 
 # Encoding that will store all of your constraints
 E = Encoding()
@@ -338,7 +338,7 @@ def add_dead_grid_stable_and_repeats_constraint():
 def example_theory():
 
     add_tile_constraints()
-    add_grid_status_constraints
+    # add_grid_status_constraints()
 
     return E
 
@@ -347,7 +347,11 @@ if __name__ == "__main__":
 
     T = example_theory()
     # Don't compile until you're finished adding all your constraints!
+    
+    print('STARTED COMPILING ...')
     T = T.compile()
+    print('FINISHED COMPILING')
+
     # After compilation (and only after), you can check some of the properties
     # of your model:
     print("\nSatisfiable: %s" % T.satisfiable())
