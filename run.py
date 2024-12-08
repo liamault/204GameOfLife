@@ -5,13 +5,13 @@ from itertools import combinations
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
-config.sat_backend = "auto"
+config.sat_backend = "kissat"
 
 # Encoding that will store all of your constraints
 E = Encoding()
 
 #number of iterations
-MAX_ITERATIONS = 1
+MAX_ITERATIONS = 10
 
 #size of grid
 GRID_SIZE = 8
@@ -26,6 +26,26 @@ class TileStatus(object):
 
     def _prop_name(self):
         return f"(At iteration {self.iteration}, the tile at {self.x}, {self.y} is alive)"
+    
+@proposition(E)
+class Has2Neighbors(object):
+    def __init__(self, x, y, iteration) -> None:
+        self.x = x
+        self.y = y
+        self.iteration = iteration
+
+    def _prop_name(self):
+        return f"(At iteration {self.iteration}, the tile at {self.x}, {self.y} has 2 neighbors)"
+    
+@proposition(E)
+class Has3Neighbors(object):
+    def __init__(self, x, y, iteration) -> None:
+        self.x = x
+        self.y = y
+        self.iteration = iteration
+
+    def _prop_name(self):
+        return f"(At iteration {self.iteration}, the tile at {self.x}, {self.y} has 3 neighbors)"
 
 @proposition(E)
 class GridStatus(object):
@@ -163,18 +183,10 @@ def boxTest():
 #  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
 #  what the expectations are.
 
-#helper function for tile constrints
-def exactly_n_neighbors(neighbors, n):
-    return Or(
-        *[
-            And(*subset, *[~neighbor for neighbor in neighbors if neighbor not in subset])
-            for subset in combinations(neighbors, n)
-        ]
-    )
-
 
 #create tile constraints
 def add_tile_constraints():
+    
     for i in range(MAX_ITERATIONS - 1):
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
@@ -187,23 +199,44 @@ def add_tile_constraints():
                     if (nx, ny) != (x, y) and 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE
                 ]
 
-                exactly2neighbors = exactly_n_neighbors(neighbors, 2)
-                exactly3neighbors = exactly_n_neighbors(neighbors, 3)
+                #define whether or not tile has 2 neighbors or not
+                has_2_neighbors = Or(*[
+                    And(*comb) for comb in combinations(neighbors, 2)
+                ])
+                E.add_constraint(has_2_neighbors >> Has2Neighbors(x, y, i))
+                E.add_constraint(~has_2_neighbors >> ~Has2Neighbors(x, y, i))
+
+                #define whether or not tile has 3 neighbors or not
+                has_3_neighbors = Or(*[
+                    And(*comb) for comb in combinations(neighbors, 3)
+                ])
+                E.add_constraint(has_3_neighbors >> Has3Neighbors(x, y, i))
+                E.add_constraint(~has_3_neighbors >> ~Has3Neighbors(x, y, i))
+
+
 
                 #if dead and three alive neighbors, become alive
                 E.add_constraint(
-                    (~TileStatus(x, y, i) & (exactly3neighbors)) >> TileStatus(x, y, i+1)
+                    (~TileStatus(x, y, i) & (Has3Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
+                )
+
+                #if dead and dont have three alive neighbors, stay dead
+                E.add_constraint(
+                    (~TileStatus(x, y, i) & (~Has3Neighbors(x, y, i))) >> ~TileStatus(x, y, i+1)
                 )
 
                 #if alive with less than 2 or more than 3 alive neighbors, die
                 E.add_constraint(
-                    (TileStatus(x, y, i) & (~exactly2neighbors & ~exactly3neighbors)) >> ~TileStatus(x, y, i+1)
+                    (TileStatus(x, y, i) & (~Has2Neighbors(x, y, i) & ~Has3Neighbors(x, y, i))) >> ~TileStatus(x, y, i+1)
                 )
 
                 #if alive with with 2 or 3 neighbors, stay alive
                 E.add_constraint(
-                    (TileStatus(x, y, i) & (exactly2neighbors | exactly3neighbors)) >> TileStatus(x, y, i+1)
+                    (TileStatus(x, y, i) & (Has2Neighbors(x, y, i) | Has2Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
                 )
+
+                # E.add_constraint(TileStatus(x, y, i) >> ~TileStatus(x, y, i+1))
+                # E.add_constraint(~TileStatus(x, y, i) >> TileStatus(x, y, i+1))
 
 
 def add_grid_status_constraints():
@@ -355,12 +388,18 @@ if __name__ == "__main__":
     T = T.compile()
     print('FINISHED COMPILING') 
 
+    import time
+    start_time = time.time()
+
     # After compilation (and only after), you can check some of the properties
     # of your model:
     print("\nSatisfiable: %s" % T.satisfiable())
     print("# Solutions: %d" % count_solutions(T))
     print("   Solution: %s" % T.solve())  
 
+    end_time = time.time()
+
+    print(f"\nExecution Time: {end_time - start_time:.2f} seconds")
     # print("\nVariable likelihoods:")
     # for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
     #     # Ensure that you only send these functions NNF formulas
