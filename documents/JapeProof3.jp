@@ -1,0 +1,40 @@
+﻿CONJECTUREPANEL MostEpicSequents
+PROOF "(C∧R)→(S∨F) ⊢ (C∧(¬S∧R))→F"
+INFER (C∧R)→(S∨F)
+     ⊢ (C∧(¬S∧R))→F 
+FORMULAE
+0 F,
+1 ⊥,
+2 ¬S,
+3 S,
+4 S∨F,
+5 ¬S∧R,
+6 R,
+7 C∧R,
+8 C∧R→S∨F,
+9 C,
+10 C∧(¬S∧R),
+11 (C∧R)→(S∨F)
+IS
+SEQ ("→ intro"[A,B\10,0]) (cut[B,C\9,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\9,5]) (hyp[A\10])) (cut[B,C\5,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\9,5]) (hyp[A\10])) (cut[B,C\6,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\2,6]) (hyp[A\5])) (cut[B,C\7,0]) ("∧ intro"[A,B\9,6]) (hyp[A\9]) (hyp[A\6]) (cut[B,C\4,0]) ("→ elim"[A,B\7,4]) (hyp[A\8]) (hyp[A\7]) (cut[B,C\2,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\2,6]) (hyp[A\5])) ("∨ elim"[A,B,C\3,0,0]) (hyp[A\4]) (cut[B,C\1,0]) ("¬ elim"[B\3]) (hyp[A\3]) (hyp[A\2]) ("contra (constructive)"[B\0]) (hyp[A\1]) (hyp[A\0])
+END
+CONJECTUREPANEL MostEpicSequents
+CURRENTPROOF "(C∧R)→(S∨F) ⊢ (C∧(¬S∧R))→F"
+INFER (C∧R)→(S∨F)
+     ⊢ (C∧(¬S∧R))→F 
+FORMULAE
+0 F,
+1 ⊥,
+2 ¬S,
+3 S,
+4 S∨F,
+5 ¬S∧R,
+6 R,
+7 C∧R,
+8 C∧R→S∨F,
+9 C,
+10 C∧(¬S∧R),
+11 (C∧R)→(S∨F)
+IS
+SEQ ("→ intro"[A,B\10,0]) (cut[B,C\9,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\9,5]) (hyp[A\10])) (cut[B,C\5,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\9,5]) (hyp[A\10])) (cut[B,C\6,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\2,6]) (hyp[A\5])) (cut[B,C\7,0]) ("∧ intro"[A,B\9,6]) (hyp[A\9]) (hyp[A\6]) (cut[B,C\4,0]) ("→ elim"[A,B\7,4]) (hyp[A\8]) (hyp[A\7]) (cut[B,C\2,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\2,6]) (hyp[A\5])) ("∨ elim"[A,B,C\3,0,0]) (hyp[A\4]) (cut[B,C\1,0]) ("¬ elim"[B\3]) (hyp[A\3]) (hyp[A\2]) ("contra (constructive)"[B\0]) (hyp[A\1]) (hyp[A\0])
+END
