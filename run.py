@@ -277,11 +277,11 @@ def add_glider_constraints():
         if equivalences:
             E.add_constraint(Glider(i) >> And(*equivalences))
 
-
-
-
-# def add_oscillating_constraint():
-#     for i         
+#initializes the oscillating constraints
+def add_oscillating_constraint():
+    for i in range(MAX_ITERATIONS - 1):
+        E.add_constraint(GridStatus(i) & (~Stability(i) & Repeating(i)) >> Oscillating(i))
+        E.add_constraint((GridStatus(i) & Repeating(i)) >> (Oscillating(i) | Stability(i)))         
 
 #S → R and ¬(R → S)
 def add_repeating_stability_relationship_constraints():
@@ -290,11 +290,6 @@ def add_repeating_stability_relationship_constraints():
         #S → R
         E.add_constraint(
             Stability(i) >> Repeating(i)
-        )
-        
-        #¬(R → S)
-        E.add_constraint(
-            ~(Repeating(i) >> Stability(i))
         )
 
 #¬C → (S ∧ R)
@@ -312,6 +307,9 @@ def example_theory():
     add_stable_constraints()
     add_repitition_constraints()
     add_glider_constraints()
+    add_oscillating_constraint()
+    add_repeating_stability_relationship_constraints()
+    add_dead_grid_stable_and_repeats_constraint()
 
     return E
 
