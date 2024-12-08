@@ -2,6 +2,7 @@
 from bauhaus import Encoding, proposition, constraint, And, Or
 from bauhaus.utils import count_solutions, likelihood
 from itertools import combinations
+import time
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -69,7 +70,7 @@ class Repeating(object):
         self.iteration = iteration
 
     def _prop_name(self):
-        return f"(Iteration {self.iteration} is the same as one of the previous iterations (Repeating))"
+        return f"(Iteration {self.iteration} will repeat in one of the next iterations (Repeating))"
 
 @proposition(E)
 class Glider(object):
@@ -78,9 +79,6 @@ class Glider(object):
 
     def _prop_name(self):
         return f"(Iteration {self.iteration} is a glider)"
-
-#TESTS ARE GONNA GO HERE
-#this is where initial tile states will be made
 
 #blinker test
 def blinkerTest():
@@ -142,47 +140,25 @@ def boxTest():
             else:
                 E.add_constraint(~TileStatus(x,y,0))
 
-            
+#dead test
+def deadTest():
+    dead = [
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+    ]
 
-
-
-# IGNORE THIS JUNK ---------------------------------------------------------------------------------------------------------------------
-
-# Different classes for propositions are useful because this allows for more dynamic constraint creation
-# for propositions within that class. For example, you can enforce that "at least one" of the propositions
-# that are instances of this class must be true by using a @constraint decorator.
-# other options include: at most one, exactly one, at most k, and implies all.
-# For a complete module reference, see https://bauhaus.readthedocs.io/en/latest/bauhaus.html
-# @constraint.at_least_one(E)
-# @proposition(E)
-# class FancyPropositions:
-
-#     def __init__(self, data):
-#         self.data = data
-
-#     def _prop_name(self):
-#         return f"A.{self.data}"
-
-# # Call your variables whatever you want
-# a = BasicProposi
-# tions("a")
-# b = BasicPropositions("b")   
-# c = BasicPropositions("c")
-# d = BasicPropositions("d")
-# e = BasicPropositions("e")
-# # At least one of these will be true
-# x = FancyPropositions("x")
-# y = FancyPropositions("y")
-# z = FancyPropositions("z")
-
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-# Build an example full theory for your setting and return it.
-#
-#  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
-#  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
-#  what the expectations are.
-
+    for x in range(GRID_SIZE):
+        for y in range(GRID_SIZE):
+            if dead[x][y] == 1:
+                E.add_constraint(TileStatus(x,y,0))
+            else:
+                E.add_constraint(~TileStatus(x,y,0))
 
 #create tile constraints
 def add_tile_constraints():
@@ -213,8 +189,6 @@ def add_tile_constraints():
                 E.add_constraint(has_3_neighbors >> Has3Neighbors(x, y, i))
                 E.add_constraint(~has_3_neighbors >> ~Has3Neighbors(x, y, i))
 
-
-
                 #if dead and three alive neighbors, become alive
                 E.add_constraint(
                     (~TileStatus(x, y, i) & (Has3Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
@@ -235,10 +209,6 @@ def add_tile_constraints():
                     (TileStatus(x, y, i) & (Has2Neighbors(x, y, i) | Has2Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
                 )
 
-                # E.add_constraint(TileStatus(x, y, i) >> ~TileStatus(x, y, i+1))
-                # E.add_constraint(~TileStatus(x, y, i) >> TileStatus(x, y, i+1))
-
-
 def add_grid_status_constraints():
     for i in range(MAX_ITERATIONS):
         
@@ -248,102 +218,71 @@ def add_grid_status_constraints():
         #if all tiles are dead, grid is dead
         E.add_constraint(And(*[~TileStatus(x, y, i) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> ~GridStatus(i))
 
+#is the next iteration eqivalent
 def add_stable_constraints():
-    for i in range(MAX_ITERATIONS):
-        
-        #if all the values of the current iteration match the next iteration, it is stable
-        if i != (MAX_ITERATIONS-1):
-            E.add_constraint(
-                And(*[TileStatus(x, y, i) == TileStatus(x, y, i+1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
-            )
+    for i in range(MAX_ITERATIONS - 1):
 
-        #backwards constraints
-        if i != 0:
-            E.add_constraint(
-                And(*[TileStatus(x, y, i) == TileStatus(x, y, i-1) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) >> Stability(i)
-            )
+        equivalences = [
+            (TileStatus(x, y, i) >> TileStatus(x, y, i+1)) &
+            (TileStatus(x, y, i+1) >> TileStatus(x, y, i))
+            for x in range(GRID_SIZE)
+            for y in range(GRID_SIZE)
+        ]
 
+        E.add_constraint(Stability(i) >> And(*equivalences))
+
+#repitition constraint, does iteration repeat in the future
 def add_repitition_constraints():
-    for i in range(MAX_ITERATIONS):
-        
-        #add constraints for repetitions
-        if i != (MAX_ITERATIONS-1):
-            E.add_constraint(
-                Or(*[
-                    And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(i+1, MAX_ITERATIONS)
-                ]) >> Repeating(i)
-            )
-        
-        #backwards constraints
-        if i != 0:
-            E.add_constraint(
-                Or(*[
-                    And(*[TileStatus(x, y, i) == TileStatus(x, y, k) for x in range(GRID_SIZE) for y in range(GRID_SIZE)]) for k in range(0, i)
-                ]) >> Repeating(i)
-            )
+    for i in range(MAX_ITERATIONS - 1):
 
+        equivalences = [
+            (TileStatus(x, y, i) >> TileStatus(x, y, j)) & 
+            (TileStatus(x, y, j) >> TileStatus(x, y, i))
+            for j in range(i + 1, MAX_ITERATIONS)
+            for x in range(GRID_SIZE)
+            for y in range(GRID_SIZE)
+        ]
+
+        E.add_constraint(Repeating(i) >> And(*equivalences))
+        
+#glider constraint, does shape move in a diagonal after 4 turns?
 def add_glider_constraints():
-    for i in range(MAX_ITERATIONS):
+    for i in range(MAX_ITERATIONS - 4):
+        equivalences = []
+
+        for x in range(GRID_SIZE):
+            for y in range(GRID_SIZE):
+                #up left
+                if x > 0 and y > 0:
+                    equivalences.append(
+                        (TileStatus(x, y, i) >> TileStatus(x-1, y-1, i+4)) &
+                        (TileStatus(x-1, y-1, i+4) >> TileStatus(x, y, i))
+                    )
+
+                #up right
+                if x > 0 and y < GRID_SIZE - 1:
+                    equivalences.append(
+                        (TileStatus(x, y, i) >> TileStatus(x-1, y+1, i+4)) &
+                        (TileStatus(x-1, y+1, i+4) >> TileStatus(x, y, i))
+                    )
+
+                #down left
+                if x < GRID_SIZE - 1 and y > 0:
+                    equivalences.append(
+                        (TileStatus(x, y, i) >> TileStatus(x+1, y-1, i+4)) &
+                        (TileStatus(x+1, y-1, i+4) >> TileStatus(x, y, i))
+                    )
+
+                #down right
+                if x < GRID_SIZE - 1 and y < GRID_SIZE - 1:
+                    equivalences.append(
+                        (TileStatus(x, y, i) >> TileStatus(x+1, y+1, i+4)) &
+                        (TileStatus(x+1, y+1, i+4) >> TileStatus(x, y, i))
+                    )
+
+        E.add_constraint(Repeating(i) >> And(*equivalences))
+
         
-        #add constraints for glider (forward)
-        if i <= MAX_ITERATIONS - 5:
-            #down right
-            E.add_constraint(
-                And(*[
-                    TileStatus(x, y, i) == TileStatus(x + 1, y + 1, i + 4) for x in range(GRID_SIZE - 1) for y in range(GRID_SIZE - 1)
-                ]) >> Glider(i)
-            )
-
-            #down left
-            E.add_constraint(
-                And(*[
-                    TileStatus(x, y, i) == TileStatus(x + 1, y - 1, i + 4) for x in range(GRID_SIZE - 1) for y in range(1, GRID_SIZE)
-                ]) >> Glider(i)
-            )
-
-            #up right
-            E.add_constraint(
-                And(*[
-                    TileStatus(x, y, i) == TileStatus(x - 1, y + 1, i + 4) for x in range(1, GRID_SIZE) for y in range(GRID_SIZE - 1)
-                ]) >> Glider(i)
-            )
-
-            #up left
-            E.add_constraint(
-                And(*[
-                    TileStatus(x, y, i) == TileStatus(x - 1, y - 1, i + 4) for x in range(1, GRID_SIZE) for y in range(1, GRID_SIZE)
-                ]) >> Glider(i)
-            )
-
-        #backwards constraints
-        if i >= 4:
-            #down right
-            E.add_constraint(
-                And(*[
-                    TileStatus(x + 1, y + 1, i) == TileStatus(x, y, i - 4) for x in range(GRID_SIZE - 1) for y in range(GRID_SIZE - 1)
-                ]) >> Glider(i)
-            )
-
-            #down left
-            E.add_constraint(
-                And(*[
-                    TileStatus(x + 1, y - 1, i) == TileStatus(x, y, i - 4) for x in range(GRID_SIZE - 1) for y in range(1, GRID_SIZE)
-                ]) >> Glider(i)
-            )
-
-            #up right
-            E.add_constraint(
-                And(*[
-                    TileStatus(x - 1, y + 1, i) == TileStatus(x, y, i - 4) for x in range(1, GRID_SIZE) for y in range(GRID_SIZE - 1)
-                ]) >> Glider(i)
-            )
-
-            #up left
-            E.add_constraint(
-                And(*[
-                    TileStatus(x - 1, y - 1, i) == TileStatus(x, y, i - 4) for x in range(1, GRID_SIZE) for y in range(1, GRID_SIZE)
-                ]) >> Glider(i)
-            )
 
 #S → R and ¬(R → S)
 def add_repeating_stability_relationship_constraints():
@@ -371,14 +310,33 @@ def add_dead_grid_stable_and_repeats_constraint():
 def example_theory():
 
     add_tile_constraints()
-    # add_grid_status_constraints()
+    add_grid_status_constraints()
+    add_stable_constraints()
+    add_repitition_constraints()
+    add_glider_constraints
 
     return E
 
 
 if __name__ == "__main__":
-    print('TEST2')
-    blinkerTest()
+    print("\nSelect a test to run:")
+    print("1. Blinker Test")
+    print("2. Dead Test")
+    print("3. Glider Test")
+    print("4. Box Test")
+        
+    choice = input("Enter your choice (1-4): ")
+    
+    if choice == '1':
+        blinkerTest()
+    elif choice == '2':
+        deadTest()
+    elif choice == '3':
+        gliderTest()
+    elif choice == '4':
+        boxTest()
+    else:
+        print("Invalid choice. Please enter a number between 1 and 4.")
 
 
     T = example_theory()
@@ -388,7 +346,7 @@ if __name__ == "__main__":
     T = T.compile()
     print('FINISHED COMPILING') 
 
-    import time
+    
     start_time = time.time()
 
     # After compilation (and only after), you can check some of the properties
