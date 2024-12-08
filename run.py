@@ -3,6 +3,8 @@ from bauhaus import Encoding, proposition, constraint, And, Or
 from bauhaus.utils import count_solutions, likelihood
 from itertools import combinations
 import time
+import re
+import numpy as np
 
 # These two lines make sure a faster SAT solver is used.
 from nnf import config
@@ -79,6 +81,14 @@ class Glider(object):
 
     def _prop_name(self):
         return f"(Iteration {self.iteration} is a glider)"
+    
+@proposition(E)
+class Oscillating(object):
+    def __init__(self, iteration) -> None:
+        self.iteration = iteration
+
+    def _prop_name(self):
+        return f"(Iteration {self.iteration} is oscillating)"
 
 #blinker test
 def blinkerTest():
@@ -104,8 +114,8 @@ def blinkerTest():
 def gliderTest():
     glider = [
         [0, 1, 0, 0, 0, 0, 0, 0],
-        [0, 0, 1, 1, 0, 0, 0, 0],
-        [0, 1, 1, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0],
@@ -116,9 +126,10 @@ def gliderTest():
     for x in range(GRID_SIZE):
         for y in range(GRID_SIZE):
             if glider[x][y] == 1:
-                E.add_constraint(TileStatus(x,y,0))
+                E.add_constraint(TileStatus(x, y, 0))
             else:
-                E.add_constraint(~TileStatus(x,y,0))
+                E.add_constraint(~TileStatus(x, y, 0))
+
 
 #box test
 def boxTest():
@@ -170,43 +181,46 @@ def add_tile_constraints():
                 #this gets neighbors
                 neighbors = [
                     TileStatus(nx, ny, i)
-                    for nx in range(x-1, x+2)
-                    for ny in range(y-1, y+2)
+                    for nx in range(x - 1, x + 2)
+                    for ny in range(y - 1, y + 2)
                     if (nx, ny) != (x, y) and 0 <= nx < GRID_SIZE and 0 <= ny < GRID_SIZE
                 ]
 
-                #define whether or not tile has 2 neighbors or not
-                has_2_neighbors = Or(*[
-                    And(*comb) for comb in combinations(neighbors, 2)
-                ])
-                E.add_constraint(has_2_neighbors >> Has2Neighbors(x, y, i))
-                E.add_constraint(~has_2_neighbors >> ~Has2Neighbors(x, y, i))
+                # Define whether the tile has exactly 2 neighbors
+                has_exactly_2_neighbors = And(
+                    Or(*[And(*comb) for comb in combinations(neighbors, 2)]),
+                    ~Or(*[And(*comb) for comb in combinations(neighbors, 3)])
+                )
+                E.add_constraint(has_exactly_2_neighbors >> Has2Neighbors(x, y, i))
+                E.add_constraint(~has_exactly_2_neighbors >> ~Has2Neighbors(x, y, i))
 
-                #define whether or not tile has 3 neighbors or not
-                has_3_neighbors = Or(*[
-                    And(*comb) for comb in combinations(neighbors, 3)
-                ])
-                E.add_constraint(has_3_neighbors >> Has3Neighbors(x, y, i))
-                E.add_constraint(~has_3_neighbors >> ~Has3Neighbors(x, y, i))
+                # Define whether the tile has exactly 3 neighbors
+                has_exactly_3_neighbors = And(
+                    Or(*[And(*comb) for comb in combinations(neighbors, 3)]),
+                    ~Or(*[And(*comb) for comb in combinations(neighbors, 4)])
+                )
+                E.add_constraint(has_exactly_3_neighbors >> Has3Neighbors(x, y, i))
+                E.add_constraint(~has_exactly_3_neighbors >> ~Has3Neighbors(x, y, i))
 
-                #if dead and three alive neighbors, become alive
+                # Conway's rules
+                # 1. Dead cell with exactly 3 alive neighbors becomes alive
                 E.add_constraint(
-                    (~TileStatus(x, y, i) & (Has3Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
+                    (~TileStatus(x, y, i) & Has3Neighbors(x, y, i)) >> TileStatus(x, y, i + 1)
                 )
 
-                #if dead and dont have three alive neighbors, stay dead
+                # 2. Alive cell with fewer than 2 or more than 3 neighbors dies
                 E.add_constraint(
-                    (~TileStatus(x, y, i) & (~Has3Neighbors(x, y, i))) >> ~TileStatus(x, y, i+1)
+                    (TileStatus(x, y, i) & (~Has2Neighbors(x, y, i) & ~Has3Neighbors(x, y, i))) >> ~TileStatus(x, y, i + 1)
                 )
 
-                #if alive with less than 2 or more than 3 alive neighbors, die
+                # 3. Alive cell with exactly 2 or 3 neighbors stays alive
                 E.add_constraint(
-                    (TileStatus(x, y, i) & (~Has2Neighbors(x, y, i) & ~Has3Neighbors(x, y, i))) >> ~TileStatus(x, y, i+1)
+                    (TileStatus(x, y, i) & (Has2Neighbors(x, y, i) | Has3Neighbors(x, y, i))) >> TileStatus(x, y, i + 1)
                 )
 
-                #if alive with with 2 or 3 neighbors, stay alive
+                # 4. Dead cell without exactly 3 neighbors stays dead
                 E.add_constraint(
-                    (TileStatus(x, y, i) & (Has2Neighbors(x, y, i) | Has2Neighbors(x, y, i))) >> TileStatus(x, y, i+1)
+                    (~TileStatus(x, y, i) & ~Has3Neighbors(x, y, i)) >> ~TileStatus(x, y, i + 1)
                 )
 
 def add_grid_status_constraints():
@@ -235,58 +249,43 @@ def add_stable_constraints():
 def add_repitition_constraints():
     for i in range(MAX_ITERATIONS - 1):
 
-        equivalences = [
-            (TileStatus(x, y, i) >> TileStatus(x, y, j)) & 
-            (TileStatus(x, y, j) >> TileStatus(x, y, i))
+        equivalences = Or(*[
+            And(*[
+                (TileStatus(x, y, i) >> TileStatus(x, y, j)) & 
+                (TileStatus(x, y, j) >> TileStatus(x, y, i))
+                for x in range(GRID_SIZE)
+                for y in range(GRID_SIZE)
+            ])
             for j in range(i + 1, MAX_ITERATIONS)
-            for x in range(GRID_SIZE)
-            for y in range(GRID_SIZE)
-        ]
+        ])
 
-        E.add_constraint(Repeating(i) >> And(*equivalences))
+        E.add_constraint(Repeating(i) >> equivalences)
         
-#glider constraint, does shape move in a diagonal after 4 turns?
+#glider constraint, does shape move in a diagonal (left-down) after 4 turns?
 def add_glider_constraints():
     for i in range(MAX_ITERATIONS - 4):
         equivalences = []
 
         for x in range(GRID_SIZE):
             for y in range(GRID_SIZE):
-                #up left
-                if x > 0 and y > 0:
-                    equivalences.append(
-                        (TileStatus(x, y, i) >> TileStatus(x-1, y-1, i+4)) &
-                        (TileStatus(x-1, y-1, i+4) >> TileStatus(x, y, i))
-                    )
-
-                #up right
-                if x > 0 and y < GRID_SIZE - 1:
-                    equivalences.append(
-                        (TileStatus(x, y, i) >> TileStatus(x-1, y+1, i+4)) &
-                        (TileStatus(x-1, y+1, i+4) >> TileStatus(x, y, i))
-                    )
-
-                #down left
-                if x < GRID_SIZE - 1 and y > 0:
-                    equivalences.append(
-                        (TileStatus(x, y, i) >> TileStatus(x+1, y-1, i+4)) &
-                        (TileStatus(x+1, y-1, i+4) >> TileStatus(x, y, i))
-                    )
-
-                #down right
                 if x < GRID_SIZE - 1 and y < GRID_SIZE - 1:
                     equivalences.append(
                         (TileStatus(x, y, i) >> TileStatus(x+1, y+1, i+4)) &
                         (TileStatus(x+1, y+1, i+4) >> TileStatus(x, y, i))
                     )
 
-        E.add_constraint(Repeating(i) >> And(*equivalences))
+        if equivalences:
+            E.add_constraint(Glider(i) >> And(*equivalences))
 
-        
+
+
+
+# def add_oscillating_constraint():
+#     for i         
 
 #S → R and ¬(R → S)
 def add_repeating_stability_relationship_constraints():
-    for i in range(MAX_ITERATIONS):
+    for i in range(MAX_ITERATIONS - 1):
         
         #S → R
         E.add_constraint(
@@ -300,7 +299,7 @@ def add_repeating_stability_relationship_constraints():
 
 #¬C → (S ∧ R)
 def add_dead_grid_stable_and_repeats_constraint():
-    for i in range(MAX_ITERATIONS):
+    for i in range(MAX_ITERATIONS - 1):
         E.add_constraint(
             ~GridStatus(i) >> (Stability(i) & Repeating(i))
         )
@@ -308,12 +307,11 @@ def add_dead_grid_stable_and_repeats_constraint():
 
 
 def example_theory():
-
     add_tile_constraints()
     add_grid_status_constraints()
     add_stable_constraints()
     add_repitition_constraints()
-    add_glider_constraints
+    add_glider_constraints()
 
     return E
 
@@ -349,18 +347,38 @@ if __name__ == "__main__":
     
     start_time = time.time()
 
+    solve = T.solve()
+
     # After compilation (and only after), you can check some of the properties
     # of your model:
     print("\nSatisfiable: %s" % T.satisfiable())
     print("# Solutions: %d" % count_solutions(T))
-    print("   Solution: %s" % T.solve())  
+    print("   Solution: %s" % solve)  
+
+    with open("solution.txt", "w") as file:
+        file.write("Solution:\n")
+        for key, value in solve.items():
+            file.write(f"{key}: {value}\n")
+
+    print("Solution written to solution.txt")
+
+    matrices = [np.zeros((GRID_SIZE, GRID_SIZE), dtype=int) for _ in range(MAX_ITERATIONS)]
+    pattern = re.compile(r"\(At iteration (\d+), the tile at (\d+), (\d+) is alive\)")
+    
+    for key, value in solve.items():
+        if value:
+            match = pattern.match(str(key))
+            if match:
+                iteration, x, y = map(int, match.groups())
+                matrices[iteration][x, y] = 1
+
+    with open("viz.txt", "w") as file:
+        for i, matrix in enumerate(matrices):
+            file.write(f"Iteration {i}:\n")
+            for row in matrix:
+                file.write(" ".join(map(str, row)) + "\n")
+            file.write("\n")
 
     end_time = time.time()
 
     print(f"\nExecution Time: {end_time - start_time:.2f} seconds")
-    # print("\nVariable likelihoods:")
-    # for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
-    #     # Ensure that you only send these functions NNF formulas
-    #     # Literals are compiled to NNF here
-    #     print(" %s: %.2f" % (vn, likelihood(T, v)))
-    # print()
