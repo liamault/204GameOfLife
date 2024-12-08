@@ -14,7 +14,7 @@ E = Encoding()
 MAX_ITERATIONS = 1
 
 #size of grid
-GRID_SIZE = 4
+GRID_SIZE = 8
 
 # To create propositions, create classes for them first, annotated with "@proposition" and the Encoding
 @proposition(E)
@@ -202,7 +202,7 @@ def add_tile_constraints():
 
                 #if alive with with 2 or 3 neighbors, stay alive
                 E.add_constraint(
-                    (TileStatus(x, y, i) & (exactly2neighbors | exactly3neighbors)) >> TileStatus(x, y, i+i)
+                    (TileStatus(x, y, i) & (exactly2neighbors | exactly3neighbors)) >> TileStatus(x, y, i+1)
                 )
 
 
@@ -344,19 +344,21 @@ def example_theory():
 
 
 if __name__ == "__main__":
+    print('TEST2')
+    blinkerTest()
+
 
     T = example_theory()
     # Don't compile until you're finished adding all your constraints!
-    
-    print('TEST1')
+
     print('STARTED COMPILING ...')
     T = T.compile()
     print('FINISHED COMPILING') 
 
     # After compilation (and only after), you can check some of the properties
     # of your model:
-    # print("\nSatisfiable: %s" % T.satisfiable())
-    # print("# Solutions: %d" % count_solutions(T))
+    print("\nSatisfiable: %s" % T.satisfiable())
+    print("# Solutions: %d" % count_solutions(T))
     print("   Solution: %s" % T.solve())  
 
     # print("\nVariable likelihoods:")
